@@ -1,25 +1,28 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache nginx curl bash tzdata busybox-suid \
+# Install cron, http-server, and build deps
+RUN apk add --no-cache curl bash tzdata busybox-suid \
     && apk add --no-cache --virtual .build-deps make gcc g++ python3 \
-    && npm install -g npm@latest \
-    && mkdir -p /run/nginx /sitemaps /var/log/cron
+    && npm install -g npm@latest http-server
 
 ENV TZ=UTC
 WORKDIR /app
 
+# Install app dependencies
 COPY package*.json ./
 RUN npm install --production
 
+# Copy app source
 COPY src ./src
-COPY nginx.conf /etc/nginx/nginx.conf
 
-# Cron job: run daily at midnight
+# Create /sitemaps directory
+RUN mkdir -p /sitemaps /var/log/cron
+
+# Cron job: run daily at 04:00 UTC
 RUN echo "0 4 * * * node /app/src/main.js >> /var/log/sitemap-cron.log 2>&1" > /etc/crontabs/root
 
-# Link /sitemaps to Nginx web root
-RUN mkdir -p /usr/share/nginx/html/sitemaps && ln -s /sitemaps /usr/share/nginx/html/sitemaps
-
+# Expose port
 EXPOSE 80
 
-CMD node /app/src/main.js && crond && nginx -g "daemon off;"
+# Run initial sitemap generation, start cron, then serve /sitemaps
+CMD node /app/src/main.js && crond && http-server /sitemaps -p 80 --cors
