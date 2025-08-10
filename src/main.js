@@ -30,11 +30,13 @@ async function main() {
 
   console.log('🛠 Generating sitemap index...');
   await createSitemapIndex(sitemapGroups, SITE_URL);
-  
+
   console.log('✅ All sitemaps updated');
 
-  console.log('Setting venues and events as indexed...');
-  await setAsIndexed([...events.map(({id}) => id,), ...venues.map(({id}) => id,),])
+  if (events.length + venues.length > 0) {
+    console.log('Setting venues and events as indexed...');
+    await setAsIndexed([...events.map(({ id }) => id,), ...venues.map(({ id }) => id,),])
+  }
 }
 
 main().catch(console.error);

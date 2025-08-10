@@ -12,7 +12,7 @@ COPY package*.json ./
 RUN npm install --production
 
 COPY src ./src
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Cron job: run daily at midnight
 RUN echo "0 4 * * * node /app/src/main.js >> /var/log/sitemap-cron.log 2>&1" > /etc/crontabs/root
