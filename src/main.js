@@ -29,7 +29,7 @@ async function main() {
   ]);
 
   console.log('🛠 Generating sitemap index...');
-  await createSitemapIndex(sitemapGroups, SITE_URL);
+  await createSitemapIndex(sitemapGroups);
 
   console.log('✅ All sitemaps updated');
 

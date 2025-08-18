@@ -1,6 +1,6 @@
 import { generateSitemapIndex } from './utils.js';
 
-export async function createSitemapIndex(groups, siteUrl) {
+export async function createSitemapIndex(groups) {
   // groups = [{ prefix, count }]
-  await generateSitemapIndex(groups, siteUrl);
+  await generateSitemapIndex(groups);
 }

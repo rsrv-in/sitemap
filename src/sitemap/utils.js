@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import xml2js from 'xml2js';
-import { SITEMAP_DIR, MAX_URLS_PER_FILE, SITE_URL, SITE_LANGS } from '../config.js';
+import { SITEMAP_DIR, MAX_URLS_PER_FILE, SITE_URL, SITE_LANGS, SITEMAP_URL } from '../config.js';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -36,7 +36,7 @@ export async function saveSitemap(fileName, data) {
     await writeFile(path.join(SITEMAP_DIR, fileName), xml, 'utf8');
 }
 
-export async function generateSitemapIndex(groups, siteUrl) {
+export async function generateSitemapIndex(groups) {
     const indexObj = {
         sitemapindex: {
             $: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
@@ -47,7 +47,7 @@ export async function generateSitemapIndex(groups, siteUrl) {
     for (const { prefix, count } of groups) {
         for (let i = 1; i <= count; i++) {
             indexObj.sitemapindex.sitemap.push({
-                loc: [`${siteUrl}/${prefix}_${i}.xml`],
+                loc: [`${SITEMAP_URL}/${prefix}_${i}.xml`],
                 lastmod: [new Date().toISOString()]
             });
         }
