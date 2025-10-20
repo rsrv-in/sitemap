@@ -6,8 +6,12 @@ import { SITEMAP_DIR, MAX_URLS_PER_FILE, SITE_URL, SITE_LANGS, SITEMAP_URL } fro
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
+
+// Include the alternate namespace
 const parser = new xml2js.Parser();
-const builder = new xml2js.Builder({ xmldec: { version: '1.0', encoding: 'UTF-8' } });
+const builder = new xml2js.Builder({
+    xmldec: { version: '1.0', encoding: 'UTF-8' },
+});
 
 export function getLatestSitemapFile(prefix) {
     const files = fs.existsSync(SITEMAP_DIR) ? fs.readdirSync(SITEMAP_DIR) : [];
@@ -27,7 +31,15 @@ export async function loadOrCreateSitemap(fileName) {
         const xmlData = await readFile(path.join(SITEMAP_DIR, fileName), 'utf8');
         return await parser.parseStringPromise(xmlData);
     } catch {
-        return { urlset: { $: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' }, url: [] } };
+        return {
+            urlset: {
+                $: {
+                    xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9',
+                    'xmlns:xhtml': 'http://www.w3.org/1999/xhtml',
+                },
+                url: [],
+            },
+        };
     }
 }
 
@@ -40,15 +52,15 @@ export async function generateSitemapIndex(groups) {
     const indexObj = {
         sitemapindex: {
             $: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
-            sitemap: []
-        }
+            sitemap: [],
+        },
     };
 
     for (const { prefix, count } of groups) {
         for (let i = 1; i <= count; i++) {
             indexObj.sitemapindex.sitemap.push({
                 loc: [`${SITEMAP_URL}/${prefix}_${i}.xml`],
-                lastmod: [new Date().toISOString()]
+                lastmod: [new Date().toISOString()],
             });
         }
     }
@@ -74,30 +86,51 @@ export async function generateSitemapForType(prefix, type, items) {
     let sitemap = await loadOrCreateSitemap(fileName);
 
     for (const { id, name } of items) {
-        for (const lang of SITE_LANGS) {
-            if (sitemap.urlset.url.length >= MAX_URLS_PER_FILE) {
-                await saveSitemap(fileName, sitemap);
-                currentIndex++;
-                sitemapCount++;
-                fileName = `${prefix}_${currentIndex}.xml`;
-                sitemap = {
-                    urlset: {
-                        $: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
-                        url: []
-                    }
-                };
-            }
-
-            sitemap.urlset.url.push({
-                loc: `${SITE_URL}/${lang}/${type}/${id}-${name}`,
-                lastmod: [new Date().toISOString()],
-                changefreq: ['daily'],
-                priority: ['0.8']
-            });
+        if (sitemap.urlset.url.length >= MAX_URLS_PER_FILE) {
+            await saveSitemap(fileName, sitemap);
+            currentIndex++;
+            sitemapCount++;
+            fileName = `${prefix}_${currentIndex}.xml`;
+            sitemap = {
+                urlset: {
+                    $: {
+                        xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9',
+                        'xmlns:xhtml': 'http://www.w3.org/1999/xhtml',
+                    },
+                    url: [],
+                },
+            };
         }
+
+        // Base (canonical) URL — English
+        const canonicalLang = 'en';
+        const canonicalUrl = `${SITE_URL}/${canonicalLang}/${type}/${id}-${encodeURIComponent(name)}`;
+
+        const urlEntry = {
+            loc: [canonicalUrl],
+            lastmod: [new Date().toISOString()],
+            changefreq: ['daily'],
+            priority: ['0.8'],
+            'xhtml:link': SITE_LANGS.map(lang => ({
+                $: {
+                    rel: 'alternate',
+                    hreflang: lang,
+                    href: `${SITE_URL}/${lang}/${type}/${id}-${encodeURIComponent(name)}`,
+                },
+            })).concat([
+                {
+                    $: {
+                        rel: 'alternate',
+                        hreflang: 'x-default',
+                        href: `${SITE_URL}/en/${type}/${id}-${encodeURIComponent(name)}`,
+                    },
+                },
+            ]),
+        };
+
+        sitemap.urlset.url.push(urlEntry);
     }
 
     await saveSitemap(fileName, sitemap);
     return sitemapCount;
 }
-
