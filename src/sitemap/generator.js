@@ -2,8 +2,8 @@ import { generateSitemapForType } from './utils.js';
 
 export async function generateAllSitemaps(sitemapData) {
     const results = await Promise.all(
-        sitemapData.map(({ prefix, type, urls }) =>
-            generateSitemapForType(prefix, type, urls)
+        sitemapData.map(({ prefix, type, urls, queryParams }) =>
+            generateSitemapForType(prefix, type, urls, queryParams)
         )
     );
 

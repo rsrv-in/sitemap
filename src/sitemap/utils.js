@@ -69,7 +69,7 @@ export async function generateSitemapIndex(groups) {
     await writeFile(path.join(SITEMAP_DIR, 'sitemap_index.xml'), xml, 'utf8');
 }
 
-export async function generateSitemapForType(prefix, type, items) {
+export async function generateSitemapForType(prefix, type, items, queryParams = '') {
     let latestFile = getLatestSitemapFile(prefix);
     let currentIndex = 1;
     let sitemapCount = 1;
@@ -104,7 +104,7 @@ export async function generateSitemapForType(prefix, type, items) {
 
         // Base (canonical) URL — English
         const canonicalLang = 'en';
-        const canonicalUrl = `${SITE_URL}/${canonicalLang}/${type}/${id}-${encodeURIComponent(name)}`;
+        const canonicalUrl = `${SITE_URL}/${canonicalLang}/${type}/${id}-${encodeURIComponent(name)}${queryParams}`;
 
         const urlEntry = {
             loc: [canonicalUrl],
@@ -115,14 +115,14 @@ export async function generateSitemapForType(prefix, type, items) {
                 $: {
                     rel: 'alternate',
                     hreflang: lang,
-                    href: `${SITE_URL}/${lang}/${type}/${id}-${encodeURIComponent(name)}`,
+                    href: `${SITE_URL}/${lang}/${type}/${id}-${encodeURIComponent(name)}${queryParams}`,
                 },
             })).concat([
                 {
                     $: {
                         rel: 'alternate',
                         hreflang: 'x-default',
-                        href: `${SITE_URL}/en/${type}/${id}-${encodeURIComponent(name)}`,
+                        href: `${SITE_URL}/en/${type}/${id}-${encodeURIComponent(name)}${queryParams}`,
                     },
                 },
             ]),

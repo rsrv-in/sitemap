@@ -10,3 +10,13 @@ export async function fetchVenues() {
       return null;
     }
 }
+
+export async function fetchExternalVenues() {
+    try {
+      const { data } = await axios.get(`${API_URL}/sitemap/unindexList/externalVenues`);
+      return data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+}
