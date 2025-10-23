@@ -18,8 +18,8 @@ COPY src ./src
 # Create /sitemaps directory
 RUN mkdir -p /sitemaps /var/log/cron
 
-# Cron job: run daily at 04:00 UTC
-RUN echo "0 4 * * * node /app/src/main.js >> /var/log/sitemap-cron.log 2>&1" > /etc/crontabs/root
+# Cron job: run every hour
+RUN echo "0 * * * * node /app/src/main.js >> /proc/1/fd/1 2>&1" > /etc/crontabs/root
 
 # Expose port
 EXPOSE 80
