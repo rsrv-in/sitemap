@@ -39,7 +39,11 @@ async function main() {
 
   if (events.length + venues.length > 0) {
     console.log('Setting venues and events as indexed...');
-    await setAsIndexed([...events.map(({ id }) => id,), ...venues.map(({ id }) => id,),])
+    await setAsIndexed([
+      ...events.map(({ id }) => id,),
+      ...venues.map(({ id }) => id,),
+      ...externalVenues.map(({ id }) => id,),
+    ])
   }
 
   console.log(`Execution Datetime: ${new Date().toISOString()}`);
